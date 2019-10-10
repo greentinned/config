@@ -1,0 +1,18 @@
+{
+  "suggest.detailMaxLength": 60,
+  "suggest.labelMaxLength": 60,
+  "languageserver": {
+    "dart": {
+      "command": "/Users/tanya/dev/flutter/bin/cache/dart-sdk/bin/dart",
+      "args": [
+        "/Users/tanya/dev/flutter/bin/cache/dart-sdk/bin/snapshots/analysis_server.dart.snapshot",
+        "--lsp"
+      ],
+      "filetypes": [
+        "dart"
+      ],
+      "disableDynamicRegister": true,
+      "trace.server": "verbose"
+    }
+  }
+}
