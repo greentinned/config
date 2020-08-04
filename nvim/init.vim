@@ -1,11 +1,19 @@
 call plug#begin('~/.vim/plugged')
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'prabirshrestha/vim-lsp'
+Plug 'mattn/vim-lsp-settings'
+Plug 'prabirshrestha/asyncomplete.vim'
+Plug 'prabirshrestha/asyncomplete-lsp.vim'
+Plug 'tpope/vim-commentary'
 Plug 'rafi/awesome-vim-colorschemes'
 Plug 'dart-lang/dart-vim-plugin'
-Plug 'thosakwe/vim-flutter'
+Plug 'mhinz/vim-startify'
+Plug 'jreybert/vimagit'
+Plug 'justinmk/vim-dirvish'
+Plug 'kristijanhusak/vim-dirvish-git'
+Plug 'greentinned/vim-code-dark'
 call plug#end()
 
-" Standard setup
+" STANDARD SETUP:
 set expandtab
 set tabstop=2
 set shiftwidth=2
@@ -13,21 +21,26 @@ set softtabstop=2
 set autowrite
 set nobackup
 set noshowmode
+set encoding=UTF-8
+set mouse=a
 
 " Netrw settings
 let g:netrw_banner = 0
 let g:netrw_liststyle= 3
 
 " Colorscheme
-color gruvbox
+color codedark
 
 "set termguicolors
 "set t_Co=256
 
-" Turn on numbers
-set number
+" Mouse
+set mouse=a
 
-" if hidden is not set, TextEdit might fail.
+" Turn on numbers
+" set number
+
+" If hidden is not set, TextEdit might fail.
 set hidden
 
 " Some servers have issues with backup files, see #649
@@ -49,113 +62,80 @@ set signcolumn=yes
 " Clear signcolumn bg
 highlight clear SignColumn
 
-" Use tab for trigger completion with characters ahead and navigate.
-" Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
-inoremap <silent><expr> <TAB>
-      \ pumvisible() ? "\<C-n>" :
-      \ <SID>check_back_space() ? "\<TAB>" :
-      \ coc#refresh()
-inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+" COMMON KEYS:
+nnoremap <leader>so :so $MYVIMRC<CR>
+nnoremap <leader>vr :sp $MYVIMRC<CR>
+nnoremap <CR> :nohl<CR><CR>
+:imap jj <Esc>
 
-function! s:check_back_space() abort
-  let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~# '\s'
+" AIRLINE:
+let g:airline#extensions#tabline#enabled = 0
+let g:airline_theme='dracula'
+let g:airline_section_y = ''
+let g:airline_section_z = ''
+
+" DIRVISH:
+hi DirvishGitModified guifg=NONE ctermbg=NONE
+hi DirvishGitStaged guifg=NONE ctermbg=NONE
+hi DirvishGitRenamed guifg=NONE ctermbg=NONE
+hi DirvishGitUnmerged guifg=NONE ctermbg=NONE
+hi DirvishGitIgnored guifg=NONE ctermbg=NONE
+hi DirvishGitUntracked guifg=NONE ctermbg=NONE
+
+let g:dirvish_mode = ':sort ,^.*[\/],'
+autocmd FileType dirvish silent keeppatterns g@\v/\.[^\/]+/?$@d _
+
+let g:dirvish_git_indicators = {
+    \ 'Modified'  : 'M',
+    \ 'Staged'    : 'S',
+    \ 'Untracked' : 'U',
+    \ 'Renamed'   : 'R',
+    \ 'Unmerged'  : '═',
+    \ 'Ignored'   : 'I',
+    \ 'Unknown'   : '?'
+\ }
+
+" ASYNCOMPLETE:
+inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+inoremap <expr> <cr>    pumvisible() ? "\<C-y>" : "\<cr>"
+
+" VIMLSP:
+let g:lsp_diagnostics_float_cursor = 1
+let g:lsp_virtual_text_enabled = 0
+
+" Diagnostics gutter signs
+let g:lsp_signs_error = {'text': '>>'}
+let g:lsp_signs_information = {'text': '>>'}
+let g:lsp_signs_warning = {'text': '>>'}
+let g:lsp_signs_hint = {'text': '>>'}
+
+" Diagnostics colors
+highlight LspWarningText cterm=underline ctermfg=yellow
+highlight LspWarningHighlight cterm=underline ctermfg=yellow
+highlight LspInformationText cterm=underline ctermfg=blue
+highlight LspInformationHighlight cterm=underline ctermfg=blue
+highlight LspHintText cterm=underline ctermfg=green
+highlight LspHintHighlight cterm=underline ctermfg=green
+
+" Keys and some other bindnings
+function! s:on_lsp_buffer_enabled() abort
+    autocmd BufWritePre * silent LspDocumentFormatSync
+    setlocal omnifunc=lsp#complete
+    setlocal signcolumn=yes
+    if exists('+tagfunc') | setlocal tagfunc=lsp#tagfunc | endif
+    nmap <buffer> gd <plug>(lsp-definition)
+    nmap <buffer> gr <plug>(lsp-references)
+    nmap <buffer> gi <plug>(lsp-implementation)
+    nmap <buffer> gt <plug>(lsp-type-definition)
+    nmap <buffer> K <plug>(lsp-hover)
+    nmap <buffer> <leader>rn <plug>(lsp-rename)
+    nmap <buffer> [g <Plug>(lsp-previous-diagnostic)
+    nmap <buffer> ]g <Plug>(lsp-next-diagnostic)
 endfunction
 
-" Use <c-space> to trigger completion.
-inoremap <silent><expr> <c-space> coc#refresh()
-
-" Use <cr> to confirm completion, `<C-g>u` means break undo chain at current position.
-" Coc only does snippet and additional edit on confirm.
-inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
-" Or use `complete_info` if your vim support it, like:
-" inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
-
-" Use `[g` and `]g` to navigate diagnostics
-nmap <silent> [g <Plug>(coc-diagnostic-prev)
-nmap <silent> ]g <Plug>(coc-diagnostic-next)
-
-" Remap keys for gotos
-nmap <silent> gd <Plug>(coc-definition)
-nmap <silent> gy <Plug>(coc-type-definition)
-nmap <silent> gi <Plug>(coc-implementation)
-nmap <silent> gr <Plug>(coc-references)
-
-" Use K to show documentation in preview window
-nnoremap <silent> K :call <SID>show_documentation()<CR>
-
-function! s:show_documentation()
-  if (index(['vim','help'], &filetype) >= 0)
-    execute 'h '.expand('<cword>')
-  else
-    call CocAction('doHover')
-  endif
-endfunction
-
-" Highlight symbol under cursor on CursorHold
-autocmd CursorHold * silent call CocActionAsync('highlight')
-
-" Remap for rename current word
-nmap <leader>rn <Plug>(coc-rename)
-
-" Remap for format selected region
-xmap <leader>f  <Plug>(coc-format-selected)
-nmap <leader>f  <Plug>(coc-format-selected)
-
-augroup mygroup
-  autocmd!
-  " Setup formatexpr specified filetype(s).
-  autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
-  " Update signature help on jump placeholder
-  autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
-augroup end
-
-" Remap for do codeAction of selected region, ex: `<leader>aap` for current paragraph
-xmap <leader>a  <Plug>(coc-codeaction-selected)
-nmap <leader>a  <Plug>(coc-codeaction-selected)
-
-" Remap for do codeAction of current line
-nmap <leader>ac  <Plug>(coc-codeaction)
-" Fix autofix problem of current line
-nmap <leader>qf  <Plug>(coc-fix-current)
-
-" Create mappings for function text object, requires document symbols feature of languageserver.
-xmap if <Plug>(coc-funcobj-i)
-xmap af <Plug>(coc-funcobj-a)
-omap if <Plug>(coc-funcobj-i)
-omap af <Plug>(coc-funcobj-a)
-
-" Use <C-d> for select selections ranges, needs server support, like: coc-tsserver, coc-python
-nmap <silent> <C-d> <Plug>(coc-range-select)
-xmap <silent> <C-d> <Plug>(coc-range-select)
-
-" Use `:Format` to format current buffer
-command! -nargs=0 Format :call CocAction('format')
-
-" Use `:Fold` to fold current buffer
-command! -nargs=? Fold :call     CocAction('fold', <f-args>)
-
-" use `:OR` for organize import of current buffer
-command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
-
-" Add status line support, for integration with other plugin, checkout `:h coc-status`
-set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
-
-" Using CocList
-" Show all diagnostics
-nnoremap <silent> <space>a  :<C-u>CocList diagnostics<cr>
-" Manage extensions
-nnoremap <silent> <space>e  :<C-u>CocList extensions<cr>
-" Show commands
-nnoremap <silent> <space>c  :<C-u>CocList commands<cr>
-" Find symbol of current document
-nnoremap <silent> <space>o  :<C-u>CocList outline<cr>
-" Search workspace symbols
-nnoremap <silent> <space>s  :<C-u>CocList -I symbols<cr>
-" Do default action for next item.
-nnoremap <silent> <space>j  :<C-u>CocNext<CR>
-" Do default action for previous item.
-nnoremap <silent> <space>k  :<C-u>CocPrev<CR>
-" Resume latest coc list
-nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
-
+augroup lsp_install
+    au!
+    " call s:on_lsp_buffer_enabled only for languages that has the server registered.
+    autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
+augroup END
